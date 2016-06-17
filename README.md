@@ -5,7 +5,7 @@ Encode and decode a file using the custom jpeg algorithm
 ### Install
 
 ```
-    $ pip install -e .
+    $ pip install -e . --process-dependency-links
 ```
   
 ### Using

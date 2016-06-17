@@ -13,8 +13,8 @@ install_requires = [
     'ipdb>=0.9.0',
     'optparse-pretty>=0.1.1',
     'bintrees>=2.0.2',
-    'scipy>=0.17.0',
     'numpy>=1.11.0',
+    'writebits>=0.0.9',
 ]
 
 
@@ -35,6 +35,8 @@ setup(
     packages=find_packages('src'),
     zip_safe=False,
     test_suite="tests.run.runtests",
+    dependency_links=[
+        'git+https://github.com/Ziul/writebits.git#egg=writebits-0.1.0'],
     install_requires=install_requires,
     include_package_data=True,
     # package_data={'': ['codebook.lbg']},
