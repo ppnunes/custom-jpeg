@@ -128,6 +128,9 @@ class CustomJpeg(object):
         """return the zig-zag of a block
             don't edit original block
         """
+        if figure.shape[0] != figure.shape[1]:
+            raise Exception('Block sould be square')
+
         n = figure.shape[0]
         output = np.array([], dtype=figure.dtype)
 
