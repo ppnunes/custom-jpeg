@@ -51,6 +51,7 @@ class CustomJpeg(object):
             raise FileNotFound(self.filename)
         self.scrambled = np.array([])
         self.pixs = _options.size
+        self.shape = self.figure.shape
 
     def encode(self, output=''):
         """encode de file"""
@@ -122,6 +123,30 @@ class CustomJpeg(object):
 
         return np.array(allBlocks, dtype=figure.dtype)
 
+    @staticmethod
+    def zig_zag(figure):
+        """return the zig-zag of a block"""
+        n = figure.shape[0]
+        output = np.array([], dtype=figure.dtype)
+
+        def move(i, j):
+            """inside method"""
+            if j < (n - 1):
+                return max(0, i - 1), j + 1
+            else:
+                return i + 1, j
+
+        x, y = 0, 0
+        for v in range(n * n):
+            output = np.append(output, v)
+            # figure[y][x] = v
+            if (x + y) & 1:
+                x, y = move(x, y)
+            else:
+                y, x = move(y, x)
+
+        return output
+
 
 def main():
     if (not _options.filename):
@@ -133,8 +158,13 @@ def main():
 
     cj = CustomJpeg(_options.filename)
     cj.encode()
-    print(cj.scrambled.shape)
     cj.show()
+    k = CustomJpeg.zig_zag(cj.figure)
+    print(k.shape)
+    print(cj.shape)
+    k.resize(cj.shape)
+    cv2.imshow('k', k)
+    cv2.waitKey(0)
 
 if __name__ == '__main__':
     main()
