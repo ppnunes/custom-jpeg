@@ -21,6 +21,12 @@ _pool = ThreadPool(processes=_MAX_THREADS)
 (_options, _args) = _parser.parse_args()
 
 
+def print(data, end='\n'):
+    """overwrite print"""
+    if _options.verbose:
+        stdout.write(str(data) + end)
+
+
 class FileNotFound(Exception):
     """docstring for FileNotFound"""
 
@@ -43,6 +49,78 @@ class CustomJpeg(object):
         self.figure = cv2.imread(self.filename, 0)
         if self.figure is None:
             raise FileNotFound(self.filename)
+        self.scrambled = np.array([])
+        self.pixs = _options.size
+
+    def encode(self, output=''):
+        """encode de file"""
+        self.blocks_split()
+        # do magic
+        self.blocks_merge()
+        # save
+
+    def blocks_merge(self):
+        """merge splited image into one"""
+
+        self.figure = CustomJpeg._blocks_merge_(
+            self.scrambled,
+            self.figure.shape,
+            self.pixs
+        )
+
+    def blocks_split(self):
+        """split a image into NxN blocks. N=self.pixs"""
+        self.scrambled = CustomJpeg._blocks_split_(self.figure, self.pixs)
+
+    def show(self, name=''):
+        """show the figure"""
+        if name == '':
+            name = self.filename
+        cv2.imshow(name, self.figure)
+        cv2.waitKey(0)
+
+    @staticmethod
+    def _blocks_merge_(scrambled, shape, pixs=8):
+
+        no_rows, no_cols = shape
+
+        rows_n = int((no_rows / pixs) * pixs)
+        cols_n = int((no_cols / pixs) * pixs)
+        figure = np.zeros(shape, scrambled.dtype)
+
+        next_block = 0
+
+        # reassemble the blocks
+        for row in range(rows_n - pixs + 1):
+            for col in range(cols_n - pixs + 1):
+                if (row % pixs == 0 and col % pixs == 0):
+                    cur_block = scrambled[next_block].copy()
+                    next_block += 1
+                    figure[row:row + pixs, col:col + pixs] = cur_block
+
+        return figure
+
+    @staticmethod
+    def _blocks_split_(figure, pixs=8):
+        scrambled = figure.copy()
+
+        no_rows, no_cols = scrambled.shape
+
+        rows_n = int((no_rows / pixs) * pixs)
+        cols_n = int((no_cols / pixs) * pixs)
+
+        scrambled = cv2.resize(scrambled, (cols_n, rows_n))
+
+        allBlocks = []
+
+        # for loops to extract all blocks
+        for row in range(rows_n - pixs + 1):
+            for col in range(cols_n - pixs + 1):
+                if (row % pixs == 0 and col % pixs == 0):
+                    block = scrambled[row:row + pixs, col:col + pixs].copy()
+                    allBlocks.append(block)
+
+        return np.array(allBlocks, dtype=figure.dtype)
 
 
 def main():
@@ -53,7 +131,10 @@ def main():
             _parser.print_help()
             return
 
-    CustomJpeg(_options.filename)
+    cj = CustomJpeg(_options.filename)
+    cj.encode()
+    print(cj.scrambled.shape)
+    cj.show()
 
 if __name__ == '__main__':
     main()
