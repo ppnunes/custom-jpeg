@@ -11,7 +11,7 @@ Encode a file using the algorithm:
 Decode a file using the algorithm:
     cjpeg <file>.cjpeg [FLAGS]
         """,
-    description="Encode/Decode a file using Linde-Buzo-Gray's code",
+    description="Encode/Decode a file using the custom jpeg algorithm",
 )
 
 # quiet options
