@@ -1,0 +1,1 @@
+from cjpeg import CustomJpeg
