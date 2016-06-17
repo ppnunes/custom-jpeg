@@ -125,7 +125,9 @@ class CustomJpeg(object):
 
     @staticmethod
     def zig_zag(figure):
-        """return the zig-zag of a block"""
+        """return the zig-zag of a block
+            don't edit original block
+        """
         n = figure.shape[0]
         output = np.array([], dtype=figure.dtype)
 
@@ -137,9 +139,8 @@ class CustomJpeg(object):
                 return i + 1, j
 
         x, y = 0, 0
-        for v in range(n * n):
-            output = np.append(output, v)
-            # figure[y][x] = v
+        for v in figure.flatten():
+            output = np.append(output, figure[y][x])
             if (x + y) & 1:
                 x, y = move(x, y)
             else:
