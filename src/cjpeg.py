@@ -22,7 +22,7 @@ _pool = ThreadPool(processes=_MAX_THREADS)
 
 
 def print(data, end='\n'):
-    # overwrite print
+    """overwrite print"""
     if _options.verbose:
         stdout.write(str(data) + end)
 
@@ -52,7 +52,15 @@ class CustomJpeg(object):
         self.scrambled = np.array([])
         self.pixs = _options.size
 
+    def encode(self, output=''):
+        """encode de file"""
+        self.blocks_split()
+        # do magic
+        self.blocks_merge()
+        # save
+
     def blocks_merge(self):
+        """merge splited image into one"""
 
         self.figure = CustomJpeg._blocks_merge_(
             self.scrambled,
@@ -61,15 +69,11 @@ class CustomJpeg(object):
         )
 
     def blocks_split(self):
+        """split a image into NxN blocks. N=self.pixs"""
         self.scrambled = CustomJpeg._blocks_split_(self.figure, self.pixs)
 
-    def encode(self, output=''):
-        self.blocks_split()
-        # do magic
-        self.blocks_merge()
-        # save
-
     def show(self, name=''):
+        """show the figure"""
         if name == '':
             name = self.filename
         cv2.imshow(name, self.figure)
