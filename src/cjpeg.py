@@ -1,5 +1,4 @@
 from __future__ import print_function
-from cjpegargs import _parser
 from sys import argv, stdout
 from glob import glob
 import os
@@ -8,17 +7,19 @@ import fnmatch
 import json
 
 from multiprocessing.pool import ThreadPool
+from pkg_resources import resource_filename
+from writebits import Bitset
+from cjpegargs import _parser
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 import itertools
 import cv2
-from pkg_resources import resource_filename
 
 
 _MAX_THREADS = 10
 _pool = ThreadPool(processes=_MAX_THREADS)
-(_options, _args) = _parser.parse_args()
+_options = _parser.parse_args()
 
 
 def print(data, end='\n'):
@@ -28,7 +29,7 @@ def print(data, end='\n'):
 
 
 class FileNotFound(Exception):
-    """docstring for FileNotFound"""
+    """docstring for FileNotFound exception"""
 
     def __init__(self, arg=''):
         if len(arg) > 1:
@@ -39,6 +40,16 @@ class FileNotFound(Exception):
         super(FileNotFound, self).__init__(output + arg)
 
 
+class EmptyFile(Exception):
+    """docstring for EmptyFile exception"""
+
+    def __init__(self, arg=''):
+        output = "There is nothing to fill the output"
+        if arg:
+            output += ': [{}]'.format(arg)
+        super(EmptyFile, self).__init__(output)
+
+
 class CustomJpeg(object):
     """docstring for CustomJpeg"""
 
@@ -47,11 +58,20 @@ class CustomJpeg(object):
         self.filename = filename
         # 0 is to read as grayscale
         self.figure = cv2.imread(self.filename, 0)
+        if not _options.output:
+            self.output_filename = self.filename.replace(
+                self.filename.split('.')[-1], 'cjpeg')
+        else:
+            self.output_filename = _options.output
         if self.figure is None:
             raise FileNotFound(self.filename)
-        self.scrambled = np.array([])
-        self.pixs = _options.size
         self.shape = self.figure.shape
+        self.pixs = _options.size
+        self.scrambled = np.array([])
+
+        self.bitarray = Bitset()
+        self.bitarray.name = self.output_filename
+        self.bitarray.verbose = _options.verbose
 
     def encode(self, output=''):
         """encode de file"""
@@ -76,9 +96,15 @@ class CustomJpeg(object):
     def show(self, name=''):
         """show the figure"""
         if name == '':
-            name = self.filename
+            name = self.output_filename
         cv2.imshow(name, self.figure)
         cv2.waitKey(0)
+
+    def write(self):
+        """write the bitarray to a file"""
+        if not len(self.bitarray):
+            raise EmptyFile(self.bitarray.name)
+        self.bitarray.to_file()
 
     @staticmethod
     def _blocks_merge_(scrambled, shape, pixs=8):
@@ -154,8 +180,8 @@ class CustomJpeg(object):
 
 def main():
     if (not _options.filename):
-        if _args:
-            _options.filename = _args[0]
+        if _options.args:
+            _options.filename = _options.args
         else:
             _parser.print_help()
             return
@@ -163,12 +189,7 @@ def main():
     cj = CustomJpeg(_options.filename)
     cj.encode()
     cj.show()
-    k = CustomJpeg.zig_zag(cj.figure)
-    print(k.shape)
-    print(cj.shape)
-    k.resize(cj.shape)
-    cv2.imshow('k', k)
-    cv2.waitKey(0)
+    # cj.write()
 
 if __name__ == '__main__':
     main()
