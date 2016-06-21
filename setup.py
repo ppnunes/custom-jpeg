@@ -15,6 +15,7 @@ install_requires = [
     'bintrees>=2.0.2',
     'numpy>=1.11.0',
     'writebits>=0.0.9',
+    'matplotlib>=1.5.1'
 ]
 
 
