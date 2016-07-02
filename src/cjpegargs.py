@@ -56,5 +56,12 @@ _parser.add_argument("-o", "--output",
                      help="Output filename",
                      )
 
+_parser.add_argument("--no-save",
+                     dest="save",
+                     default=True,
+                     action="store_false",
+                     help="Create the file",
+                     )
+
 _parser.add_argument("args", help="display a square of a given number",
                      type=str)

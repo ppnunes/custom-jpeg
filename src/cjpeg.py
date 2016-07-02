@@ -321,7 +321,8 @@ def main():
     begin = dt.now()
     cj.encode()
     end = dt.now()
-    cj.save()
+    if _options.save:
+        cj.save()
 
     if _options.verbose:
         windows = plt.figure()
