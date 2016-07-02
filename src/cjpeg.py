@@ -92,7 +92,7 @@ class CustomJpeg(object):
     def blocks_split(self):
         """split a image into NxN blocks. N=self.pixs"""
         self.scrambled = CustomJpeg._blocks_split_(
-            self.figure, self.figure.shape, self.pixs)
+            self.figure, self.pixs)
 
     def show(self, name=''):
         """show the figure"""
@@ -200,6 +200,7 @@ def main():
     cj.encode()
     cv2.imshow('k', cj.output)
     cj.show()
+
     cv2.waitKey(0)
 
 if __name__ == '__main__':
