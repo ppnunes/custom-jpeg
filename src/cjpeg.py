@@ -7,11 +7,18 @@ import fnmatch
 import json
 
 from multiprocessing.pool import ThreadPool
+from cjpegargs import _parser
+from writebits import Bitset
 # import matplotlib.pyplot as plt
 # import matplotlib.animation as animation
 import numpy as np
 import itertools
-import cv2
+
+from pkg_resources import resource_filename
+try:
+    import cv2
+except Exception:
+    import local_cv2
 
 
 _MAX_THREADS = 10
