@@ -15,7 +15,7 @@ import numpy as np
 import itertools
 
 from pkg_resources import resource_filename
-from qtables import huffman_cd, huffman_luminance
+from qtables import huffman_dc, huffman_luminance
 try:
     import cv2
 except Exception:
@@ -82,7 +82,7 @@ class CustomJpeg(object):
 
         self.bitarray = Bitset()
         self.bitarray.name = self.output_filename
-        self.bitarray.verbose = _options.verbose
+        self.bitarray.verbose = False
 
     def encode(self, output=''):
         """encode de file"""
@@ -121,11 +121,11 @@ class CustomJpeg(object):
                     zero_counts = 0
 
             # second stage
-            bit_zise = len('{:b}'.format(abs(bits[0])))
-            bits[0] = [[bit_zise], bits[0]]
+            bit_size = len('{:b}'.format(abs(bits[0])))
+            bits[0] = [[bit_size], bits[0]]
             for bit in range(1, len(bits)):
-                bit_zise = len('{:b}'.format(abs(bits[bit][1])))
-                bits[bit][0] = [bits[bit][0], bit_zise]
+                bit_size = len('{:b}'.format(abs(bits[bit][1])))
+                bits[bit][0] = [bits[bit][0], bit_size]
 
             # third stage
             for bit in range(len(bits)):
@@ -136,19 +136,18 @@ class CustomJpeg(object):
                 else:
                     binary = '{:b}'.format(value)
                 # cut the string
-                bit_zise = bits[bit][0][-1]
-                binary = binary[-bit_zise:]
+                bit_size = bits[bit][0][-1]
+                binary = binary[-bit_size:]
                 bits[bit][-1] = binary
 
             # four stage (huffman)
-            bits[0][0] = huffman_cd[bits[0][0][0]]
+            bits[0][0] = huffman_dc[bits[0][0][0]]
             self.bitarray.push(bits[0][0])
             self.bitarray.push(bits[0][1])
             for bit in range(1, len(bits)):
                 bits[bit][0] = huffman_luminance[str(bits[bit][0])]
                 self.bitarray.push(bits[bit][0])
                 self.bitarray.push(bits[bit][1])
-            print(len(self.bitarray))
 
             #  its ready!
 

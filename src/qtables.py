@@ -4,7 +4,7 @@ from __future__ import print_function
 # http://www.globalspec.com/reference/39556/203279/appendix-b-huffman-tables-for-the-dc-and-ac-coefficients-of-the-jpeg-baseline-encoder
 
 
-huffman_cd = {0: '00',
+huffman_dc = {0: '00',
 
               1: '010',
 
