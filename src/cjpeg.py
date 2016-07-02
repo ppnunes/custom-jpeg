@@ -9,7 +9,7 @@ import json
 from multiprocessing.pool import ThreadPool
 from cjpegargs import _parser
 from writebits import Bitset
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # import matplotlib.animation as animation
 import numpy as np
 import itertools
@@ -86,6 +86,13 @@ class CustomJpeg(object):
 
     def encode(self, output=''):
         """encode de file"""
+        # will be only one block
+        if True in (self.pixs > np.array(self.figure.shape)):
+            self.pixs = min(self.figure.shape)
+            import warnings
+            warnings.simplefilter("always")
+            warnings.warn('size updated to {}'.format(
+                self.pixs), Warning)
         self.blocks_split()
         self.output = self.scrambled.copy()
         for i in range(len(self.scrambled)):
@@ -93,8 +100,14 @@ class CustomJpeg(object):
         self.quantize()
         self.output = self._blocks_merge_(
             self.output, self.figure.shape, self.pixs)
+
+    def save(self):
         # save
-        self.bitarray.to_file()
+        if len(self.bitarray) > 0:
+            self.bitarray.to_file()
+
+    def size(self):
+        return len(self.bitarray) / 8
 
     def quantize(self):
         """ Quantize the output to write into the file"""
@@ -283,10 +296,21 @@ def main():
 
     cj = CustomJpeg(_options.filename)
     cj.encode()
-    cv2.imshow('k', cj.output)
-    cj.show()
+    cj.save()
 
-    cv2.waitKey(0)
+    if _options.verbose:
+        windows = plt.figure()
+        windows.add_subplot(1, 2, 1)
+        plt.imshow(cj.figure, cmap='Greys_r')
+        windows.add_subplot(1, 2, 2)
+        plt.imshow(cj.output, cmap='Greys_r')
+        plt.show()
+
+    print('{} > {} ({:.2f}%)'.format(os.path.getsize(_options.filename),
+                                     cj.size(),
+                                     100 * (1 - cj.size() /
+                                            os.path.getsize(_options.filename))
+                                     ))
 
 if __name__ == '__main__':
     main()
