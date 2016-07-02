@@ -7,14 +7,18 @@ import fnmatch
 import json
 
 from multiprocessing.pool import ThreadPool
-from pkg_resources import resource_filename
-from writebits import Bitset
 from cjpegargs import _parser
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from writebits import Bitset
+# import matplotlib.pyplot as plt
+# import matplotlib.animation as animation
 import numpy as np
 import itertools
-import cv2
+
+from pkg_resources import resource_filename
+try:
+    import cv2
+except Exception:
+    import local_cv2
 
 
 _MAX_THREADS = 10
@@ -76,8 +80,11 @@ class CustomJpeg(object):
     def encode(self, output=''):
         """encode de file"""
         self.blocks_split()
-        # do magic
-        self.blocks_merge()
+        self.output = self.scrambled.copy()
+        for i in range(len(self.scrambled)):
+            self.output[i] = CustomJpeg._customDCT_(self.scrambled[i])
+        self.output = self._blocks_merge_(
+            self.output, self.figure.shape, self.pixs)
         # save
 
     def blocks_merge(self):
@@ -91,7 +98,8 @@ class CustomJpeg(object):
 
     def blocks_split(self):
         """split a image into NxN blocks. N=self.pixs"""
-        self.scrambled = CustomJpeg._blocks_split_(self.figure, self.pixs)
+        self.scrambled = CustomJpeg._blocks_split_(
+            self.figure, self.pixs)
 
     def show(self, name=''):
         """show the figure"""
@@ -105,6 +113,15 @@ class CustomJpeg(object):
         if not len(self.bitarray):
             raise EmptyFile(self.bitarray.name)
         self.bitarray.to_file()
+
+    @staticmethod
+    def _customDCT_(block):
+        """applying DCT in a macroblock"""
+        imf = np.float32(block) / 255.0  # float conversion/scale
+        dst = cv2.dct(imf)           # the dct
+        img = np.uint8(dst) * 255.0
+
+        return img
 
     @staticmethod
     def _blocks_merge_(scrambled, shape, pixs=8):
@@ -188,8 +205,10 @@ def main():
 
     cj = CustomJpeg(_options.filename)
     cj.encode()
+    cv2.imshow('k', cj.output)
     cj.show()
-    # cj.write()
+
+    cv2.waitKey(0)
 
 if __name__ == '__main__':
     main()
