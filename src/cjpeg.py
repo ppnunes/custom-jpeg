@@ -15,6 +15,7 @@ import numpy as np
 import itertools
 
 from pkg_resources import resource_filename
+from qtables import huffman_cd, huffman_luminance
 try:
     import cv2
 except Exception:
@@ -89,9 +90,67 @@ class CustomJpeg(object):
         self.output = self.scrambled.copy()
         for i in range(len(self.scrambled)):
             self.output[i] = CustomJpeg._customDCT_(self.scrambled[i])
+        self.quantize()
         self.output = self._blocks_merge_(
             self.output, self.figure.shape, self.pixs)
         # save
+        self.bitarray.to_file()
+
+    def quantize(self):
+        """ Quantize the output to write into the file"""
+        # start value to DC
+        DC = 0
+        for block in self.output:
+            list_block = self.zig_zag(block)
+            # [new DC] = [first] - [old DC]
+            DC = list_block[0] - DC
+            # lets format the list like the outpush shows in:
+            # http://www.pcs-ip.eu/index.php/main/edu/8
+            bits = []
+            # first stage
+            bits.append(DC)
+            zero_counts = 0
+            for value in list_block[1:]:
+                if value == 0:
+                    zero_counts += 1
+                    if zero_counts == 10:
+                        bits.append([zero_counts, value])
+                        zero_counts = 0
+                else:
+                    bits.append([zero_counts, value])
+                    zero_counts = 0
+
+            # second stage
+            bit_zise = len('{:b}'.format(abs(bits[0])))
+            bits[0] = [[bit_zise], bits[0]]
+            for bit in range(1, len(bits)):
+                bit_zise = len('{:b}'.format(abs(bits[bit][1])))
+                bits[bit][0] = [bits[bit][0], bit_zise]
+
+            # third stage
+            for bit in range(len(bits)):
+                value = bits[bit][-1]
+                # using U1
+                if value < 0:
+                    binary = '{:b}'.format(((1 << 16) + value) - 1)
+                else:
+                    binary = '{:b}'.format(value)
+                # cut the string
+                bit_zise = bits[bit][0][-1]
+                binary = binary[-bit_zise:]
+                bits[bit][-1] = binary
+
+            # four stage (huffman)
+            bits[0][0] = huffman_cd[bits[0][0][0]]
+            self.bitarray.push(bits[0][0])
+            self.bitarray.push(bits[0][1])
+            for bit in range(1, len(bits)):
+                bits[bit][0] = huffman_luminance[str(bits[bit][0])]
+                self.bitarray.push(bits[bit][0])
+                self.bitarray.push(bits[bit][1])
+            print(len(self.bitarray))
+
+            #  its ready!
 
     def blocks_merge(self):
         """merge splited image into one"""
