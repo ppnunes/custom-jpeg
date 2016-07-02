@@ -62,6 +62,12 @@ class CustomJpeg(object):
         self.filename = filename
         # 0 is to read as grayscale
         self.figure = cv2.imread(self.filename, 0)
+        # generate image RGB -> YCbCr
+        self.figure_ycbcr = cv2.cvtColor(
+            cv2.imread(self.filename), cv2.COLOR_BGR2YCR_CB)
+        # got each element from YCbCr
+        self.y, self.cb, self.cr = self._split_channel_(self.figure_ycbcr)
+
         if not _options.output:
             self.output_filename = self.filename.replace(
                 self.filename.split('.')[-1], 'cjpeg')
@@ -113,6 +119,20 @@ class CustomJpeg(object):
         if not len(self.bitarray):
             raise EmptyFile(self.bitarray.name)
         self.bitarray.to_file()
+
+    @staticmethod
+    def _split_channel_(img):
+        channels = []
+        for ch in range(img.shape[-1]):
+            channels.append(img[..., ch])
+        return channels
+
+    @staticmethod
+    def _concatenate_channels_(ch1, ch2, ch3):
+        assert ch1.ndim == 2 and ch2.ndim == 2 and ch3.ndim == 2
+        rgb = (ch1[..., np.newaxis],
+               ch2[..., np.newaxis], ch3[..., np.newaxis])
+        return np.concatenate(rgb, axis=-1)
 
     @staticmethod
     def _customDCT_(block):
