@@ -338,9 +338,10 @@ def main():
                                             os.path.getsize(_options.filename))
                                      ))
 
-    logger.info('{};{};{};{:.2f};{};{}'.format(
+    logger.info('{};{};{};{};{:.2f};{};{}'.format(
         _options.filename.split('/')[-1],
         os.path.getsize(_options.filename),
+        cj.figure.shape,
         cj.size(),
         100 * (1 - cj.size() / os.path.getsize(_options.filename)),
         cj.pixs,

@@ -7,10 +7,12 @@ from multiprocessing.pool import ThreadPool
 import subprocess
 
 size_block = [4, 8, 16, 32, 64]
+_MAX_THREADS = 10
 
 
 def execute(filename):
-    for size in size_block:
+    def run(size):
+        # for size in size_block:
         cmd = ['cjpeg', '-q', '-n {}'.format(size),
                '--no-save', '{}'.format(filename)]
 
@@ -20,11 +22,14 @@ def execute(filename):
         except Exception:
             pass
 
+    runner = ThreadPool(processes=_MAX_THREADS)
+    result = runner.map_async(run, size_block)
+    result.wait()
+
 
 def main():
     pattener = ["*.jpg", '*.jpeg', '*.tiff', '*.bmp']
 
-    _MAX_THREADS = 10
     times = 10
     _pool = ThreadPool(processes=_MAX_THREADS)
     files = []
