@@ -28,7 +28,7 @@ def execute(filename):
 
 
 def main():
-    pattener = ["*.jpg", '*.jpeg', '*.tiff', '*.bmp']
+    pattener = ["*.jpg", '*.jpeg', '*.tiff', '*.bmp', "*.png"]
 
     times = 10
     _pool = ThreadPool(processes=_MAX_THREADS)
