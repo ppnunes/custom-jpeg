@@ -5,6 +5,8 @@ import os
 import sys
 import fnmatch
 import json
+import logging
+from datetime import datetime as dt
 
 from multiprocessing.pool import ThreadPool
 from cjpegargs import _parser
@@ -53,6 +55,26 @@ class EmptyFile(Exception):
         if arg:
             output += ': [{}]'.format(arg)
         super(EmptyFile, self).__init__(output)
+
+
+def build_logger():
+    """ Method to build the logger's handler """
+    # day = dt.now().strftime("%A, %d %B %Y")
+    day = _options.filename.split('/')[-1]
+    from os import path
+
+    root = path.dirname(path.abspath(__file__))
+    handler = logging.FileHandler('%s/../%s.csv' % (root, day))
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # define a logging format
+    formatter = logging.Formatter('%(message)s')
+    handler.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(handler)
+    return logger
 
 
 class CustomJpeg(object):
@@ -107,7 +129,7 @@ class CustomJpeg(object):
             self.bitarray.to_file()
 
     def size(self):
-        return len(self.bitarray) / 8
+        return int(len(self.bitarray) / 8)
 
     def quantize(self):
         """ Quantize the output to write into the file"""
@@ -294,9 +316,13 @@ def main():
             _parser.print_help()
             return
 
+    logger = build_logger()
     cj = CustomJpeg(_options.filename)
+    begin = dt.now()
     cj.encode()
-    cj.save()
+    end = dt.now()
+    if _options.save:
+        cj.save()
 
     if _options.verbose:
         windows = plt.figure()
@@ -311,6 +337,16 @@ def main():
                                      100 * (1 - cj.size() /
                                             os.path.getsize(_options.filename))
                                      ))
+
+    logger.info('{};{};{};{};{:.2f};{};{}'.format(
+        _options.filename.split('/')[-1],
+        os.path.getsize(_options.filename),
+        cj.figure.shape,
+        cj.size(),
+        100 * (1 - cj.size() / os.path.getsize(_options.filename)),
+        cj.pixs,
+        (end - begin)
+    ))
 
 if __name__ == '__main__':
     main()
