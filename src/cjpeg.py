@@ -178,6 +178,8 @@ class CustomJpeg(object):
             # four stage (huffman)
             bits[0][0] = huffman_dc[bits[0][0][0]]
             self.bitarray.push(bits[0][0])
+            if '-' in bits[0][1]:
+                bits[0][1] = int(bits[0][1], 2)
             self.bitarray.push(bits[0][1])
             for bit in range(1, len(bits)):
                 bits[bit][0] = huffman_luminance[str(bits[bit][0])]
