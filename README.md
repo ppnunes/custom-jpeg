@@ -1,5 +1,5 @@
 # Custom JPEG
-Encode and decode a file using the custom jpeg algorithm
+Encode a picture using the custom jpeg algorithm
 
 
 ### Install
