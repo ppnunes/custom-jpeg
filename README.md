@@ -29,4 +29,3 @@ More options:
 ```
     $ cjpeg --help
 ```
-mesmo nao sendo perfeita eu sou a ratinha eleita
